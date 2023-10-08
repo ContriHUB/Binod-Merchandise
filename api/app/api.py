@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from decouple import config
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
@@ -6,7 +7,12 @@ import json
 from app import EMAIL, PSWRD
 import os
 
+
+
 app = FastAPI()
+
+EMAIL = os.getenv("EMAIL")
+PSWRD = os.getenv("PSWRD")
 
 origins = [
     "http://localhost:3000",
