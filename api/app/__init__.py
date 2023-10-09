@@ -5,5 +5,5 @@ from fastapi import FastAPI
 from decouple import config
 
 load_dotenv()
-MAIL_USERNAME = os.getenv("EMAIL") 
-MAIL_PASSWORD = os.getenv("PSWRD")
+CONTACT_EMAIL = os.getenv("EMAIL") 
+CONTACT_PASSWORD = os.getenv("PSWRD")

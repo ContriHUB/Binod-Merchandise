@@ -21,8 +21,8 @@ origins = [
 ]
 
 conf = ConnectionConfig(
-    MAIL_USERNAME = EMAIL,
-    MAIL_PASSWORD = PSWRD,
+    CONTACT_EMAIL = EMAIL,
+    CONTACT_PASSWORD = PSWRD,
     MAIL_PORT = 587,
     MAIL_SERVER = "smtp.gmail.com",
     MAIL_TLS = True,
