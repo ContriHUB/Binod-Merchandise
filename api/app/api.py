@@ -6,9 +6,9 @@ from sqlalchemy import create_engine,ForeignKey,Column,String,Boolean,Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import json
-from app import EMAIL, PSWRD
 import os
-
+EMAIL = os.environ.get('YOUR_APP_EMAIL')
+PSWRD = os.environ.get('YOUR_APP_PASSWORD')
 
 app = FastAPI()
 
