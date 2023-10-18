@@ -2,6 +2,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
+from sqlalchemy import create_engine,ForeignKey,Column,String,Boolean,Integer
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 import json
 from app import EMAIL, PSWRD
 import os
@@ -44,11 +47,48 @@ json_file_path = os.path.join(DIR_PATH, "app", "database.json")
 async def read_root() -> dict:
     return {"message": "Backend is working great!!!"}
 
+Base = declarative_base() #class that alll the model's have to inherit
+standardURL = "https://cloud.appwrite.io/v1/storage/buckets/6528591515f8b537058c/files/65297172d64d55d33a65/view?project=6525861227b93b73d7ee&mode=admin" #by default photo url
+class Merch(Base):
+    __tablename__ = "merchandise"
+
+    key = Column("key",Integer,primary_key=True)
+    name = Column("name",String)
+    size = Column("size",String)
+    visible = Column("visible",Boolean)
+    imageURL = Column("imageURL",String)
+    def __init__(self,key,name,size,visible,imageURL):
+        self.key = key
+        self.name = name
+        self.size = size
+        self.visible = visible 
+        self.imageURL = imageURL
+engine = create_engine("sqlite:///binod.db",echo=True) #connect to database and create a engine
+Base.metadata.create_all(bind=engine) #all the classes extending Base 
+Session = sessionmaker(bind=engine) #session class
+session = Session()#session object using which we can write to the database
+
+def makeEntriesInDatabase(): #this function is to be run only for the first time when the database is not initialized
+    merch1=Merch(1,'Cool Jacket',"XL",True,standardURL)
+    merch2=Merch(2,"Matte black T-shirt","L",True, standardURL)
+    merch3=Merch(3,"Party jacket","M",True, standardURL)
+    merch4=Merch(4,"Everyday jeans","L",True, standardURL)
+    merch5=Merch(5,"Pattern T-Shirt","XL",True,standardURL)
+    merch6=Merch(6,"Fancy grey scarfed","M",True,standardURL)
+    merch7=Merch(7,"Formal affair","S",True,standardURL)
+    session.add_all([merch1,merch2,merch3,merch4,merch5,merch6,merch7])# add all the object's
+    session.commit()#commit change's to database
+
+#makeEntriesInDatabase() #comment this code out if it is the database has not been created yet 
+
+
 @app.get("/get_products")
 async def read_db_products() -> dict:
-    with open(json_file_path) as json_file:
-        products = json.load(json_file)
-    return products
+    query = session.query(Merch).all() #get all product's
+    serialized_products = [{'name': product.name, 'size': product.size, 'key': product.key, 'visible': product.visible , 'imageURL':product.imageURL} for product in query] #convert the object's into json
+    produce={"products":serialized_products}
+    
+    return produce
 
 @app.post("/save_project")
 async def save_project(request: Request):
@@ -56,29 +96,17 @@ async def save_project(request: Request):
     data = jsonable_encoder(data)
     if len(data.keys())==0:
         return {"message":"No data passed"}
-    with open(json_file_path,'r') as json_file:
-        products = json.load(json_file)
-        products["products"].append({
-            "key": int(data["key"]),
-            "name": data["title"],
-            "size": data["size"],
-            "imageURL": data["imageURL"] if data["imageURL"] else "https://cloud.appwrite.io/v1/storage/buckets/6528591515f8b537058c/files/65297172d64d55d33a65/view?project=6525861227b93b73d7ee&mode=admin",
-            "visible": True,
-        })
-        print(products)
-    with open(json_file_path,'w') as json_file:
-        json_file.write(json.dumps(products,indent=4))
+    
+    productToEnter = Merch(data["key"],data["title"],data["size"],True,data["image"] if data["imageURL"] else standardURL)#create new object
+    session.add(productToEnter)##write object to database
+    session.commit()
+    
     return {"message": "Your product has been saved successfully"}
 
 @app.get("/delete_project/{key}")
 async def save_project(key: int):
-    with open(json_file_path,'r') as json_file:
-        products = json.load(json_file)
-        for product in products["products"]:
-            if product["key"] == key:
-                products["products"].remove(product)
-    with open(json_file_path,'w') as json_file:
-        json_file.write(json.dumps(products,indent=4))
+    session.query(Merch).filter(Merch.key==key).delete()# query by key and delete
+    session.commit()#commit all the change's
     return {"message": "Your product has been deleted successfully"}
 
 def get_template(mail,msg):
