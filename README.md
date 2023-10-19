@@ -33,3 +33,12 @@ Follow these instructions to get a copy of the project up and running on your lo
     sudo apt install python3-pip
 ### Install requirements.txt using pip
     pip install -r requirements.txt
+
+## FOR ENABLING FASTAPI WRITING PASSWORD AND EMAIL IN ENVIROMENT VARIABLE
+    FOR WINDOWS:
+        setx YOUR_APP_EMAIL "youremail@domain.com"
+        setx YOUR_APP_PASSWORD "password_goes_here"
+    FOR LINUX/macOS:
+        export YOUR_APP_EMAIL="youremail@domain.com"
+        export YOUR_APP_PASSWORD="password_goes_here"
+
